@@ -54,7 +54,7 @@ open("test_results/prima/mse_list.txt", "w") do io
                 return sum(curr_mse[8:9])
             end
 
-            optimal_hyperparams, info = PRIMA.newuoa(calculate_MSE_for_prima, [-0.66, -5.], rhobeg=4, rhoend=1e-2, maxfun=1)
+            optimal_hyperparams, info = PRIMA.newuoa(calculate_MSE_for_prima, [-0.66, -5.], rhobeg=4, rhoend=1e-2, maxfun=100)
             writedlm(io, mse_list, ',')
             println("Optimal hyperparameters lambda, alpha: ", optimal_hyperparams[1], optimal_hyperparams[2])
             println("Info: ", info)
