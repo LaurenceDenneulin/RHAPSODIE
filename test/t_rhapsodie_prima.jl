@@ -36,8 +36,6 @@ for k in range(-3, 0, step=0.5)
     if !isdir(dir_path)
         mkdir(dir_path)
     end
-    io = open("test_results/prima/contrast_10e$(k)/mse.csv", "w")
-    writedlm(io, header, ',')
     Rhapsodie.load_data("$(root_path)DATA.fits", "$(root_path)WEIGHT.fits")
 
         function calculate_MSE_for_prima(X::Vector{Float64})
@@ -56,6 +54,8 @@ for k in range(-3, 0, step=0.5)
         end
 
         optimal_hyperparams, info = PRIMA.newuoa(calculate_MSE_for_prima, [-0.66, -5.], rhobeg=4, rhoend=1e-2, maxfun=100)
+        io = open("test_results/prima/contrast_10e$(k)/mse.csv", "w")
+        writedlm(io, header, ',')
         writedlm(io, mse_list, ',')
         close(io)
         println("Optimal hyperparameters lambda, alpha: ", optimal_hyperparams[1], optimal_hyperparams[2])
