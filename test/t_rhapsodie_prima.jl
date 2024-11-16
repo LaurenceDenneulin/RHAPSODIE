@@ -60,4 +60,4 @@ for k in range(-3, 0, step=0.5)
         close(io)
         println("Optimal hyperparameters lambda, alpha: ", optimal_hyperparams[1], optimal_hyperparams[2])
         println("Info: ", info)
-    end
+end
