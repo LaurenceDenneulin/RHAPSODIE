@@ -44,9 +44,9 @@ for row in eachrow(df)
     regularisation_parameters = 10 .^[0,  -1. , -1, -0.66] #(in log10) star, disk
     regularisation_parameters[1] = 0
     # regularisation_parameter_list = [10^i for i in range(-3, 0, length=10)]
-    regularisation_parameter_list = [lambda]
+    regularisation_parameter_list = [10^lambda]
     regularisation_parameters[4] = regularisation_parameter_list[1]
-    x = apply_rhapsodie(X0, A, Rhapsodie.dataset, regularisation_parameters, α=alpha,
+    x = apply_rhapsodie(X0, A, Rhapsodie.dataset, regularisation_parameters, α=10^alpha,
                         maxeval=1000, maxiter=max_iter);
     crop!(x)
     res = Rhapsodie.MSE_object(x, x_true_polar_map)
