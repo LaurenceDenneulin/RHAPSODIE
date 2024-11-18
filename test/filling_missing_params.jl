@@ -26,7 +26,7 @@ psf_center=readdlm("../data_for_demo/PSF_centers_Airy.txt");
 
 Rhapsodie.load_parameters((DSIZE, 2*DSIZE, NTOT), Nframe, Nrot, Nangle, Center, (psf_center[1:2], psf_center[3:4]), Epsilon, derotang=DerotAng)
 
-mse_list = Vector{Float64}()
+mse_list = Vector{Vector{Any}}()
 if length(ARGS) < 1
     println("Usage: julia script.jl <file_path>")
     exit(1)
