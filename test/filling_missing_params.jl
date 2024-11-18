@@ -53,7 +53,7 @@ for row in eachrow(df)
     x = apply_rhapsodie(X0, A, Rhapsodie.dataset, regularisation_parameters, α=10^alpha,
                         maxeval=1000, maxiter=max_iter);
     crop!(x)
-    res = Rhapsodie.MSE_object(x, x_true_polar_map)
+    res = Rhapsodie.MSE_object(x, true_polar_map)
     empty!(Rhapsodie.dataset)
 
     Iu_disk_mse = res[8]
