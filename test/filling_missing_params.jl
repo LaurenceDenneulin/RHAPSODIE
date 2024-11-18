@@ -59,6 +59,6 @@ for row in eachrow(df)
     Iu_disk_mse = res[8]
     Ip_disk_mse = res[9]
     theta_mse = res[10]
-    push!(mse_list, [lambda, alpha, k, Iu_disk_mse, Ip_disk_mse, theta_mse])
+    push!(mse_list, [lambda, alpha, contrast, Iu_disk_mse, Ip_disk_mse, theta_mse])
 end
 writedlm("test_results/missing_mse_list.csv", mse_list)
