@@ -39,7 +39,7 @@ for row in eachrow(df)
     alpha = row[:α]
     contrast = row[:contrast]
     true_polar_map = Rhapsodie.read_and_fill_polar_map("mixed", "../test_results/contrast_10e$(contrast)/TRUE.fits")
-    Rhapsodie.load_data("test_results/contrast_10e$(contrast)/DATA.fits", "../test_results/contrast_10e$(contrast)/WEIGHT.fits")
+    Rhapsodie.load_data("../test_results/contrast_10e$(contrast)/DATA.fits", "../test_results/contrast_10e$(contrast)/WEIGHT.fits")
 
     PSF = readfits("data_for_demo/PSF_parametered_Airy.fits");
     A = set_fft_op(PSF[1:end÷2,:]'[:,:],psf_center[1:2]);
