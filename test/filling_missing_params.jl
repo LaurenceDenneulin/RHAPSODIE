@@ -5,7 +5,7 @@ using DelimitedFiles
 using EasyFITS
 
 max_iter = 700
-par=readdlm("data_for_demo/Parameters.txt")
+par=readdlm("../data_for_demo/Parameters.txt")
 DSIZE=Int64(par[1]);
 NTOT=Int64(par[2]);
 Nframe=Int64(par[3]);
@@ -22,7 +22,7 @@ for iter=1:NTOT
     push!(Epsilon,([0. ,0. ],par[end-1:end]));
 end
 		
-psf_center=readdlm("data_for_demo/PSF_centers_Airy.txt");
+psf_center=readdlm("../data_for_demo/PSF_centers_Airy.txt");
 
 Rhapsodie.load_parameters((DSIZE, 2*DSIZE, NTOT), Nframe, Nrot, Nangle, Center, (psf_center[1:2], psf_center[3:4]), Epsilon, derotang=DerotAng)
 
