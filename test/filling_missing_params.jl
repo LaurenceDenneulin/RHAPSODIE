@@ -41,7 +41,7 @@ for row in eachrow(df)
     true_polar_map = Rhapsodie.read_and_fill_polar_map("mixed", "../test_results/contrast_10e$(contrast)/TRUE.fits")
     Rhapsodie.load_data("../test_results/contrast_10e$(contrast)/DATA.fits", "../test_results/contrast_10e$(contrast)/WEIGHT.fits")
 
-    PSF = readfits("data_for_demo/PSF_parametered_Airy.fits");
+    PSF = readfits("../data_for_demo/PSF_parametered_Airy.fits");
     A = set_fft_op(PSF[1:end÷2,:]'[:,:],psf_center[1:2]);
 
     X0 = TPolarimetricMap("mixed", zeros(Rhapsodie.get_par().cols));
@@ -61,4 +61,4 @@ for row in eachrow(df)
     theta_mse = res[10]
     push!(mse_list, [lambda, alpha, contrast, Iu_disk_mse, Ip_disk_mse, theta_mse])
 end
-writedlm("test_results/missing_mse_list.csv", mse_list)
+writedlm("../test_results/missing_mse_list.csv", mse_list)
