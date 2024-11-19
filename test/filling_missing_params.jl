@@ -61,4 +61,7 @@ for row in eachrow(df)
     theta_mse = res[10]
     push!(mse_list, [lambda, alpha, contrast, Iu_disk_mse, Ip_disk_mse, theta_mse])
 end
-writedlm("../test_results/missing_mse_list.csv", mse_list)
+
+parts = split(basename(file_path), '_')
+k = parse(Float64, parts[5][1:end-4])  # remove ".csv" extension
+writedlm("../test_results/missing_mse_list_$(k).csv", mse_list)
