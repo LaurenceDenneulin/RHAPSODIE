@@ -63,12 +63,6 @@ function apply_gradient!(X::TPolarimetricMap, A::D, g::Array{T,3}, d::Array{Tdat
     @assert (n1,n2) == size(X)
     @assert n3 == 4
     
-
-    if X.parameter_type == "intensities"
-        error("Global reconstruction not implemented on Iu, Ip, and θ. 
-               Only use 'stokes' or 'mixed' parameters.")
-    end
-    
     Ay = cat(X.I_star[:,:], A*X.I_disk[:,:], A*X.Q[:,:], A*X.U[:,:], dims=3)
     # Compute data fidelity term and gradient. (As gradient is initially set to
     # zero, we can recycle it between x and y.)
@@ -86,9 +80,23 @@ function apply_gradient!(X::TPolarimetricMap, A::D, g::Array{T,3}, d::Array{Tdat
         g[:,:,i3].= A'*view(g,:,:,i3)[:,:];
     end
 
-    if X.parameter_type == "mixed"
+    if X.parameter_type == "intensities"
         @inbounds for i2 in 1:n2
-            # FIXME : Might be the wrong gradient
+            for i1 in 1:n1
+                if X.Ip_disk[i1,i2] > 0
+
+                    g[i1, i2, 3] = g[i1, i2, 2] + cos(2*X.θ[i1, i2]) * g[i1, i2, 3] + sin(2*X.θ[i1, i2]) * g[i1, i2, 4]
+                    g[i1, i2, 4] =  -2 * X.Ip_disk[i1, i2] * sin(2*X.θ[i1, i2]) * g[i1, i2, 3]
+                                    + 2 * X.Ip_disk[i1, i2] * cos(2*X.θ[i1, i2]) * g[i1, i2, 4]
+                end
+            end
+        end 
+ 	    #f+=cost!(μ[1][2] , μ[1][1], X.Iu[:,:], view(g,:,:,1), false);
+ 	    f+=apply_tikhonov!(X.Iu_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
+        f+=apply_edge_preserving_smoothing!(cat(X.Iu_disk[:,:], X.Ip_disk[:,:], dims=3), view(g,:,:,3:4), μ[2].λ, μ[2].ρ, α)
+
+    elseif X.parameter_type == "mixed"
+        @inbounds for i2 in 1:n2
             for i1 in 1:n1
                 if X.Ip_disk[i1,i2] > 0
                     g[i1, i2, 3] += g[i1, i2, 2] * (X.Q[i1, i2] / X.Ip_disk[i1, i2])
@@ -99,7 +107,8 @@ function apply_gradient!(X::TPolarimetricMap, A::D, g::Array{T,3}, d::Array{Tdat
  	    #f+=cost!(μ[1][2] , μ[1][1], X.Iu[:,:], view(g,:,:,1), false);
  	    f+=apply_tikhonov!(X.Iu_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
         f+=apply_edge_preserving_smoothing!(cat(X.Iu_disk[:,:], X.Q[:,:], X.U[:,:], dims=3), view(g,:,:,2:4), μ[2].λ, μ[2].ρ, α)
-     elseif X.parameter_type == "stokes"
+
+    elseif X.parameter_type == "stokes"
  	    f+=apply_tikhonov!(X.I_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
         f+=apply_edge_preserving_smoothing!(cat(X.I_disk[:,:], X.Q[:,:], X.U[:,:], dims=3), view(g,:,:,2:4), μ[2].λ, μ[2].ρ, α)
  	    #f+=cost!(μ[1][2] , μ[1][1], X.I[:,:], view(g,:,:,1), false);    
@@ -134,6 +143,54 @@ function apply_tikhonov!(x::AbstractArray{T,2},
     return f
 end
 
+function apply_edge_preserving_smoothing!(x::AbstractArray{T,3},
+    g::AbstractArray{T,3},
+    λ::Real,
+    ρ::Real,
+    α::Real) where {T <: AbstractFloat}
+
+    m,n,o = size(x)
+    f = zero(T);
+    r = zero(T);
+    μ = λ/(2*ρ);
+    x1 = zero(T);
+    x2 = zero(T);
+        
+    for i=1:m-1
+        for j=1:n-1
+            ndx=zero(T)
+            for k=1:o
+                x1= (x[i,j,o] - x[i+1,j,o])/2
+                x2= (x[i,j,o] - x[i,j+1,o])/2
+                
+                nrm = x1^2 + x2^2;
+                (k==1) && (nrm *= α)
+                ndx += nrm
+            end
+            r =  ndx + μ^2;
+            ## Cost functon ##
+            f += λ*(√r -  μ);
+            if r>0
+                for k=1:o
+                    x1= (x[i,j,o] - x[i+1,j,o])/2
+                    x2= (x[i,j,o] - x[i,j+1,o])/2
+
+                    (k==1) && (x1 *= α)
+                    (k==1) && (x2 *= α)
+                    ## Gradient in x ##
+                    ∂r=2*√r;
+                    g[i,j,o] += λ*(x1 + x2)/∂r;
+                    g[i+1,j,o] -= λ*x1/∂r; 
+                    g[i,j+1,o] -= λ*x2/∂r; 
+                    
+                end
+            end
+        end
+    end
+    
+    return f
+end
+#=
 function apply_edge_preserving_smoothing!(x::AbstractArray{T,3},
                                    g::AbstractArray{T,3},
                                    λ::Real, 
@@ -183,3 +240,4 @@ function apply_edge_preserving_smoothing!(x::AbstractArray{T,3},
     
     return f
 end
+=#
