@@ -42,16 +42,18 @@ where :
 
 function apply_rhapsodie(x0::TPolarimetricMap, A::D, d::Array{Tdata_table,1}, par::Array{T,1}; mem=3, maxeval=50, maxiter=50, α::Real, xtol=(1e-3,1e-8), gtol=(1e-3,1e-8), ftol=(1e-3,1e-8)) where {T <: AbstractFloat, D <:Mapping}
     n1,n2 = size(x0)
-    X0 = convert(Array{T,3},x0);
+    X0 = convert(Array{T,3}, x0);
     μ=[hyperparameters(par[1], par[3]); 
        hyperparameters(par[2], par[4])];
     lower_born=vcreate(X0);
-    vfill!(view(lower_born,:,:,1:2),0.0)
-    vfill!(view(lower_born,:,:,3:4),-Inf)
-   
+    upper_born=vcreate(X0);
+    vfill!(view(lower_born,:,:,1:3),0.0)
+    vfill!(view(lower_born,:,:,4),-π)
+    vfill!(view(upper_born,:,:,4),π)
+    vfill!(view(upper_born,:,:,1:3),Inf)
     g=vcreate(X0);
     rhapsodie_fg!(x,g) = apply_gradient!(TPolarimetricMap(x0.parameter_type, x), A, g, d, μ, α)
-    x = vmlmb(rhapsodie_fg!, X0, mem=mem, maxeval=maxeval, maxiter=maxiter, lower=lower_born, xtol=xtol,  gtol=gtol, ftol=ftol, verb=true);
+    x = vmlmb(rhapsodie_fg!, X0, mem=mem, maxeval=maxeval, maxiter=maxiter, lower=lower_born, upper=upper_born, xtol=xtol,  gtol=gtol, ftol=ftol, verb=true);
     return TPolarimetricMap(x0.parameter_type, x)
 end
 
@@ -80,20 +82,20 @@ function apply_gradient!(X::TPolarimetricMap, A::D, g::Array{T,3}, d::Array{Tdat
         g[:,:,i3].= A'*view(g,:,:,i3)[:,:];
     end
 
-    if X.parameter_type == "intensities"
+    if X.parameter_type == "intensities" # Basis under the form (Iu_star, Iu_disk, Ip, θ)
         @inbounds for i2 in 1:n2
             for i1 in 1:n1
                 if X.Ip_disk[i1,i2] > 0
-
+                    curr_g_3 = g[i1, i2, 3]
                     g[i1, i2, 3] = g[i1, i2, 2] + cos(2*X.θ[i1, i2]) * g[i1, i2, 3] + sin(2*X.θ[i1, i2]) * g[i1, i2, 4]
-                    g[i1, i2, 4] =  -2 * X.Ip_disk[i1, i2] * sin(2*X.θ[i1, i2]) * g[i1, i2, 3]
+                    g[i1, i2, 4] =  -2 * X.Ip_disk[i1, i2] * sin(2*X.θ[i1, i2]) * curr_g_3
                                     + 2 * X.Ip_disk[i1, i2] * cos(2*X.θ[i1, i2]) * g[i1, i2, 4]
                 end
             end
         end 
  	    #f+=cost!(μ[1][2] , μ[1][1], X.Iu[:,:], view(g,:,:,1), false);
  	    f+=apply_tikhonov!(X.Iu_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
-        f+=apply_edge_preserving_smoothing!(cat(X.Iu_disk[:,:], X.Ip_disk[:,:], dims=3), view(g,:,:,3:4), μ[2].λ, μ[2].ρ, α)
+        f+=apply_edge_preserving_smoothing!(cat(X.Iu_disk[:,:], X.Ip_disk[:,:], dims=3), view(g,:,:,2:3), μ[2].λ, μ[2].ρ, α)
 
     elseif X.parameter_type == "mixed"
         @inbounds for i2 in 1:n2
