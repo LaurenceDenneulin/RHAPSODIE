@@ -41,9 +41,9 @@ for k in contrast_list
 
     PSF = readfits("data_for_demo/PSF_parametered_Airy.fits");
     A = set_fft_op(PSF[1:end÷2,:]'[:,:],psf_center[1:2]);
-
     # X0 = TPolarimetricMap(parameter_type, zeros(Rhapsodie.get_par().cols));
     X0 = true_polar_map;
+    println("Type of X0: ", typeof(X0))
     regularisation_parameters = 10 .^[0,  -1. , -1, -0.66] #(in log10) star, disk
     regularisation_parameters[1] = 0
     regularisation_parameter_list = [-2.8123070745690395]

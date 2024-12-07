@@ -42,22 +42,23 @@ where :
 
 function apply_rhapsodie(x0::TPolarimetricMap, A::D, d::Array{Tdata_table,1}, par::Array{T,1}; mem=3, maxeval=50, maxiter=50, α::Real, xtol=(1e-3,1e-8), gtol=(1e-3,1e-8), ftol=(1e-3,1e-8)) where {T <: AbstractFloat, D <:Mapping}
     n1,n2 = size(x0)
+    parameter_type = x0.parameter_type
     X0 = convert(Array{T,3}, x0);
     μ=[hyperparameters(par[1], par[3]); 
        hyperparameters(par[2], par[4])];
     lower_born=vcreate(X0);
     upper_born=vcreate(X0);
-    if X0.parameter_type == "intensities"
+    if parameter_type == "intensities"
         vfill!(view(lower_born,:,:,1:3),0.0)
         vfill!(view(lower_born,:,:,4),-π)
         vfill!(view(upper_born,:,:,4),π)
         vfill!(view(upper_born,:,:,1:3),Inf)
-    elseif X0.parameter_type == "mixed"
+    elseif parameter_type == "mixed"
         vfill!(view(lower_born,:,:,1:2),0.0)
         vfill!(view(lower_born,:,:,3:4),-Inf)
     end
     g=vcreate(X0);
-    rhapsodie_fg!(x,g) = apply_gradient!(TPolarimetricMap(x0.parameter_type, x), A, g, d, μ, α)
+    rhapsodie_fg!(x,g) = apply_gradient!(TPolarimetricMap(parameter_type, x), A, g, d, μ, α)
     x = vmlmb(rhapsodie_fg!, X0, mem=mem, maxeval=maxeval, maxiter=maxiter, lower=lower_born, upper=upper_born, xtol=xtol,  gtol=gtol, ftol=ftol, verb=true);
     return TPolarimetricMap(x0.parameter_type, x)
 end
