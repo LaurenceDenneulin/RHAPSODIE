@@ -51,11 +51,12 @@ function apply_rhapsodie(x0::TPolarimetricMap, A::D, d::Array{Tdata_table,1}, pa
     if parameter_type == "intensities"
         vfill!(view(lower_born,:,:,1:3),0.0)
         vfill!(view(lower_born,:,:,4),-π)
-        vfill!(view(upper_born,:,:,4),π)
         vfill!(view(upper_born,:,:,1:3),Inf)
+        vfill!(view(upper_born,:,:,4),π)
     elseif parameter_type == "mixed"
         vfill!(view(lower_born,:,:,1:2),0.0)
         vfill!(view(lower_born,:,:,3:4),-Inf)
+        vfill!(view(upper_born,:,:,1:4),Inf)
     end
     g=vcreate(X0);
     rhapsodie_fg!(x,g) = apply_gradient!(TPolarimetricMap(parameter_type, x), A, g, d, μ, α)
@@ -92,7 +93,7 @@ function apply_gradient!(X::TPolarimetricMap, A::D, g::Array{T,3}, d::Array{Tdat
         @inbounds for i2 in 1:n2
             for i1 in 1:n1
                 if X.Ip_disk[i1,i2] > 0
-                    curr_g_3 = g[i1, i2, 3]
+                    curr_g_3 = copy(g[i1, i2, 3])
                     g[i1, i2, 3] = g[i1, i2, 2] + cos(2*X.θ[i1, i2]) * g[i1, i2, 3] + sin(2*X.θ[i1, i2]) * g[i1, i2, 4]
                     g[i1, i2, 4] =  -2 * X.Ip_disk[i1, i2] * sin(2*X.θ[i1, i2]) * curr_g_3
                                     + 2 * X.Ip_disk[i1, i2] * cos(2*X.θ[i1, i2]) * g[i1, i2, 4]
@@ -101,9 +102,10 @@ function apply_gradient!(X::TPolarimetricMap, A::D, g::Array{T,3}, d::Array{Tdat
         end 
  	    #f+=cost!(μ[1][2] , μ[1][1], X.Iu[:,:], view(g,:,:,1), false);
  	    f+=apply_tikhonov!(X.Iu_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
-        f+=apply_edge_preserving_smoothing!(cat(X.Iu_disk[:,:], X.Ip_disk[:,:], dims=3), view(g,:,:,2:3), μ[2].λ, μ[2].ρ, α)
+        f+=apply_edge_preserving_smoothing!(X.Iu_disk[:,:], view(g,:,:,2), μ[2].λ, μ[2].ρ, α)
+        f+=apply_edge_preserving_smoothing!(X.Ip_disk[:,:], view(g,:,:,3), μ[2].λ, μ[2].ρ, α)
 
-    elseif X.parameter_type == "mixed"
+    elseif X.parameter_type == "mixed" # Basis under the form (Iu_star, Iu_disk, Q, U)
         @inbounds for i2 in 1:n2
             for i1 in 1:n1
                 if X.Ip_disk[i1,i2] > 0
@@ -116,7 +118,7 @@ function apply_gradient!(X::TPolarimetricMap, A::D, g::Array{T,3}, d::Array{Tdat
  	    f+=apply_tikhonov!(X.Iu_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
         f+=apply_edge_preserving_smoothing!(cat(X.Iu_disk[:,:], X.Q[:,:], X.U[:,:], dims=3), view(g,:,:,2:4), μ[2].λ, μ[2].ρ, α)
 
-    elseif X.parameter_type == "stokes"
+    elseif X.parameter_type == "stokes" # Basis under the form (Iu_star, Iu_disk, Q, U)
  	    f+=apply_tikhonov!(X.I_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
         f+=apply_edge_preserving_smoothing!(cat(X.I_disk[:,:], X.Q[:,:], X.U[:,:], dims=3), view(g,:,:,2:4), μ[2].λ, μ[2].ρ, α)
  	    #f+=cost!(μ[1][2] , μ[1][1], X.I[:,:], view(g,:,:,1), false);    
