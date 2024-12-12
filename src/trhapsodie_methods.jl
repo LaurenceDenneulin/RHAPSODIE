@@ -200,6 +200,43 @@ function apply_edge_preserving_smoothing!(x::AbstractArray{T,3},
     
     return f
 end
+
+function apply_edge_preserving_smoothing!(x::AbstractArray{T,2},
+    g::AbstractArray{T,2},
+    λ::Real,
+    ρ::Real,
+    α::Real) where {T <: AbstractFloat}
+
+    m, n = size(x)
+    f = zero(T)
+    r = zero(T)
+    μ = λ / (2 * ρ)
+    x1 = zero(T)
+    x2 = zero(T)
+
+    for i = 1:m-1
+        for j = 1:n-1
+            x1 = (x[i, j] - x[i+1, j]) / 2
+            x2 = (x[i, j] - x[i, j+1]) / 2
+
+            nrm = x1^2 + x2^2
+            nrm *= α
+
+            r = nrm + μ^2
+            ## Cost function ##
+            f += λ * (√r - μ)
+            if r > 0
+                ## Gradient in x ##
+                ∂r = 2 * √r
+                g[i, j] += λ * (x1 + x2) / ∂r
+                g[i+1, j] -= λ * x1 / ∂r
+                g[i, j+1] -= λ * x2 / ∂r
+            end
+        end
+    end
+
+    return f
+end
 #=
 function apply_edge_preserving_smoothing!(x::AbstractArray{T,3},
                                    g::AbstractArray{T,3},
