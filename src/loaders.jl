@@ -129,10 +129,12 @@ function load_parameters(size_data::NTuple{3,Int64},
     newcenter = (bbox_output .+1)./2
     if size_data[3] == Nrot
         push_to_star_disk_table(Id, epsilon, center, [newcenter[1], newcenter[2]], derotang) 
+        SetCropOperator(Star_Disk_Table)
+
     else
         push_to_trans_table(Id, epsilon, center, newcenter, derotang=derotang)
+        SetCropOperator(Trans_Table)
     end
-    SetCropOperator(Star_Disk_Table)
 end
 
 function load_data(name_data, name_weight)

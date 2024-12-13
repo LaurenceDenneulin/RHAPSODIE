@@ -28,7 +28,8 @@ A = set_fft_op(PSF[1:end÷2,:]'[:,:],psf_center[1:2]);
 header = Vector{Vector{String}}()
 push!(header, ["contrast", "λ", "α", "Iu_disk_mse", "Ip_disk_mse", "theta_mse"])
 
-for k in range(-3, 0, step=0.5)
+# for k in range(-3, 0, step=0.5)
+for k in [-2.0]
     println("Starting contrast: 10e$(k)")
     mse_list = Vector{Vector{Any}}()
     root_path = "test_results/contrast_10e$(k)/"
@@ -42,7 +43,9 @@ for k in range(-3, 0, step=0.5)
             λ, α = X
             regularisation_parameters = 10 .^[0,  -1. , -1, λ]
             regularisation_parameters[1] = 0
-            X0 = TPolarimetricMap("mixed", zeros(Rhapsodie.get_par().cols));
+            diff_fits = EasyFITS.readfits("test_results/contrast_10e$(k)/Results_Separable_DoubleDifference.fits")
+            diff_polar_map = Rhapsodie.TPolarimetricMap("mixed", diff_fits[ :, :, 1]', diff_fits[ :, :, 5]', diff_fits[:, :, 2]', diff_fits[:, :, 3]')
+            X0 = diff_polar_map
             x_est = apply_rhapsodie(X0, A, Rhapsodie.dataset, regularisation_parameters, α=10^α, maxeval=1000, maxiter=1000)
             true_polar_map = Rhapsodie.read_and_fill_polar_map("mixed", "$(root_path)TRUE.fits")
             crop!(x_est)

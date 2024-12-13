@@ -102,8 +102,8 @@ function apply_gradient!(X::TPolarimetricMap, A::D, g::Array{T,3}, d::Array{Tdat
         end 
  	    #f+=cost!(μ[1][2] , μ[1][1], X.Iu[:,:], view(g,:,:,1), false);
  	    f+=apply_tikhonov!(X.Iu_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
-        f+=apply_edge_preserving_smoothing!(X.Iu_disk[:,:], view(g,:,:,2), μ[2].λ, μ[2].ρ, α)
-        f+=apply_edge_preserving_smoothing!(X.Ip_disk[:,:], view(g,:,:,3), μ[2].λ, μ[2].ρ, α)
+        f+=apply_edge_preserving_smoothing!(X.Iu_disk[:,:], view(g,:,:,2), μ[2].λ, μ[2].ρ; α)
+        f+=apply_edge_preserving_smoothing!(X.Ip_disk[:,:], view(g,:,:,3), μ[2].λ, μ[2].ρ; α)
 
     elseif X.parameter_type == "mixed" # Basis under the form (Iu_star, Iu_disk, Q, U)
         @inbounds for i2 in 1:n2
@@ -113,14 +113,18 @@ function apply_gradient!(X::TPolarimetricMap, A::D, g::Array{T,3}, d::Array{Tdat
                     g[i1, i2, 4] += g[i1, i2, 2] * (X.U[i1, i2] / X.Ip_disk[i1, i2])
                 end
             end
-        end 
+        end
+        tmp_grad = zeros(T, n1, n2)
  	    #f+=cost!(μ[1][2] , μ[1][1], X.Iu[:,:], view(g,:,:,1), false);
  	    f+=apply_tikhonov!(X.Iu_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
-        f+=apply_edge_preserving_smoothing!(cat(X.Iu_disk[:,:], X.Q[:,:], X.U[:,:], dims=3), view(g,:,:,2:4), μ[2].λ, μ[2].ρ, α)
+        f+=apply_edge_preserving_smoothing!(X.Iu_disk[:,:], view(g,:,:,2), μ[2].λ, μ[2].ρ; α)
+        f+=apply_edge_preserving_smoothing!(X.Q[:,:].*X.Q[:,:] + X.U[:,:].*X.U[:,:], tmp_grad, μ[2].λ, μ[2].ρ)
+        g[:,:,3] .+= 2 * X.Q .* tmp_grad
+        g[:,:,4] .+= 2 * X.U .* tmp_grad
 
     elseif X.parameter_type == "stokes" # Basis under the form (Iu_star, Iu_disk, Q, U)
  	    f+=apply_tikhonov!(X.I_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
-        f+=apply_edge_preserving_smoothing!(cat(X.I_disk[:,:], X.Q[:,:], X.U[:,:], dims=3), view(g,:,:,2:4), μ[2].λ, μ[2].ρ, α)
+        f+=apply_edge_preserving_smoothing!(cat(X.I_disk[:,:], X.Q[:,:], X.U[:,:], dims=3), view(g,:,:,2:4), μ[2].λ, μ[2].ρ; α)
  	    #f+=cost!(μ[1][2] , μ[1][1], X.I[:,:], view(g,:,:,1), false);    
      end
 	#f+=cost!(μ[2][2] , μ[2][1], cat(X.Q[:,:], X.U[:,:], dims=3), view(g,:,:,2:3), false);
@@ -156,8 +160,8 @@ end
 function apply_edge_preserving_smoothing!(x::AbstractArray{T,3},
     g::AbstractArray{T,3},
     λ::Real,
-    ρ::Real,
-    α::Real) where {T <: AbstractFloat}
+    ρ::Real;
+    α=1.0) where {T <: AbstractFloat}
 
     m,n,o = size(x)
     f = zero(T);
@@ -204,8 +208,8 @@ end
 function apply_edge_preserving_smoothing!(x::AbstractArray{T,2},
     g::AbstractArray{T,2},
     λ::Real,
-    ρ::Real,
-    α::Real) where {T <: AbstractFloat}
+    ρ::Real;
+    α=1.0) where {T <: AbstractFloat}
 
     m, n = size(x)
     f = zero(T)

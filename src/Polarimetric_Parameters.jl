@@ -314,3 +314,10 @@ yields an empty
             error("unknown parameter type")
         end
      end
+
+     function write_polar_map(X::PolarimetricMap{T}, filename::AbstractString; overwrite::Bool = false) where {T<:AbstractFloat}
+        data = cat(X.I', X.Q', X.U', X.Iu', X.Ip', X.θ', dims=3)
+        writefits(filename,
+        ["D" => ("Ok", "")],
+        data, overwrite=overwrite)
+     end

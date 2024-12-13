@@ -18,13 +18,6 @@ true_polar_map = PolarimetricMap("mixed",
                                 view(true_file, :, :, IU_HEADER_POS)',
                                 view(true_file, :, :, IP_DISK_HEADER_POS)',
                                 view(true_file, :, :, THETA_HEADER_POS)')
-true_polar_map = PolarimetricMap("mixed",
-                                view(true_file, :, :, I_STAR_HEADER_POS)' .+ view(true_file, :, :, I_DISK_HEADER_POS)',
-                                view(true_file, :, :, Q_HEADER_POS)',
-                                view(true_file, :, :, U_HEADER_POS)', 
-                                view(true_file, :, :, IU_HEADER_POS)',
-                                view(true_file, :, :, IP_DISK_HEADER_POS)',
-                                view(true_file, :, :, THETA_HEADER_POS)')
 
 double_difference_file = readfits("test_results/methods_comparison/Results_Separable_DoubleDifference.fits")
 double_diff = PolarimetricMap("mixed",
