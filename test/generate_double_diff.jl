@@ -24,7 +24,7 @@ for iter=1:NTOT
     ind=div(iter-1, NTOT/4)+1
     push!(Epsilon,([0. ,0. ],par[end-1:end]));
 end
-		
+
 psf_center=readdlm("data_for_demo/PSF_centers_Airy.txt");
 
 Rhapsodie.load_parameters((DSIZE, 2*DSIZE, NTOT), Nframe, Nrot

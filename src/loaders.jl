@@ -114,10 +114,15 @@ function load_parameters(size_data::NTuple{3,Int64},
         epsilon::Vector{NTuple{2,Array{Float64,1}}};
         derotang=nothing::Vector{Float64},
         size_object=(0, 0)::NTuple{2,Int64},
-        padding=20::Int64)
+        padding=20::Int64,
+        v=nothing::Union{Array{Float64,2},Nothing})
     Id = AffineTransform2D{Float64}()
     sets_indices=Indices(size_data[3], Nangle, Nframe)
-    sets_v=Set_Vi(sets_indices)
+    if v !== nothing
+        sets_v=Set_Vi(Nframe, size_data[3], v)
+    else
+        sets_v=Set_Vi(sets_indices)
+    end
     bbox_output = get_max_boxing(Id, size_data, center, epsilon, derotang=derotang)
     if  (bbox_output[1] + padding > size_object[1]) || (bbox_output[2] + padding > size_object[2])
         @warn "The reconstruction size estimated by the mehod is larger than the size given by the user." "bbox_ouput set to the size obtained by the method." 

@@ -65,6 +65,23 @@ function MSE_object(x_est::TPolarimetricMap, x_true::TPolarimetricMap)
     return MSE
 end
 
+function MSE_object(x_est::PolarimetricMap, x_true::PolarimetricMap)
+    MSE = zeros(length(fieldnames(TPolarimetricMap)) - 1)
+    n_pixels = sum(get_MASK())
+    for (i, attr) in enumerate(fieldnames(TPolarimetricMap))
+        if i == 1 # Skipping field "parameter_type"
+            continue
+        end
+        if i == 7 # Calculating circular MSE for theta field
+            MSE[i - 1] = rad2deg(vnorm2(angle.(exp.(im*2*(x_est.θ - x_true.θ))).*get_MASK()/2)/n_pixels)
+            continue
+        end
+        MSE[i - 1] = vdot(getfield(x_est, attr) - getfield(x_true, attr), getfield(x_est, attr) - getfield(x_true, attr))
+        MSE[i - 1] /= vdot(getfield(x_true, attr), getfield(x_true, attr))
+    end
+    return MSE
+end
+
 function sure_crit(x::Array{T,N},
                    δx::Array{T,N}, 
                    d::Array{data_table,1}, 

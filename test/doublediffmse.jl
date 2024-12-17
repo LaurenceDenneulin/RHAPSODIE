@@ -10,7 +10,7 @@ const IU_HEADER_POS = 6
 const IP_DISK_HEADER_POS = 9
 const THETA_HEADER_POS = 10
 
-true_file = readfits("test_results/TRUE.fits")
+true_file = readfits("test_results/contrast_10e-2.0/TRUE.fits")
 true_polar_map = PolarimetricMap("mixed",
                                 view(true_file, :, :, I_STAR_HEADER_POS)' .+ view(true_file, :, :, I_DISK_HEADER_POS)',
                                 view(true_file, :, :, Q_HEADER_POS)',
@@ -19,7 +19,7 @@ true_polar_map = PolarimetricMap("mixed",
                                 view(true_file, :, :, IP_DISK_HEADER_POS)',
                                 view(true_file, :, :, THETA_HEADER_POS)')
 
-double_difference_file = readfits("test_results/methods_comparison/Results_Separable_DoubleDifference.fits")
+double_difference_file = readfits("test_results/contrast_10e-2.0/Results_Separable_DoubleDifference.fits")
 double_diff = PolarimetricMap("mixed",
             view(double_difference_file, :, :, 1)',
             view(double_difference_file, :, :, 2)',
