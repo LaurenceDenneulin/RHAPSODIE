@@ -45,7 +45,8 @@ function apply_rhapsodie(x0::TPolarimetricMap, A::D, d::Array{Tdata_table,1}, pa
     parameter_type = x0.parameter_type
     X0 = convert(Array{T,3}, x0);
     μ=[hyperparameters(par[1], par[3]); 
-       hyperparameters(par[2], par[4])];
+       hyperparameters(par[2], par[4]);
+       hyperparameters(par[5], par[6])];
     lower_born=vcreate(X0);
     upper_born=vcreate(X0);
     if parameter_type == "intensities"
@@ -117,8 +118,8 @@ function apply_gradient!(X::TPolarimetricMap, A::D, g::Array{T,3}, d::Array{Tdat
         tmp_grad = zeros(T, n1, n2)
  	    #f+=cost!(μ[1][2] , μ[1][1], X.Iu[:,:], view(g,:,:,1), false);
  	    f+=apply_tikhonov!(X.Iu_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
-        f+=apply_edge_preserving_smoothing!(X.Iu_disk[:,:], view(g,:,:,2), μ[2].λ, μ[2].ρ; α)
-        f+=apply_edge_preserving_smoothing!(X.Q[:,:].*X.Q[:,:] + X.U[:,:].*X.U[:,:], tmp_grad, μ[2].λ, μ[2].ρ)
+        f+=apply_edge_preserving_smoothing!(X.Iu_disk[:,:], view(g,:,:,2), μ[2].λ, μ[2].ρ)
+        f+=apply_edge_preserving_smoothing!(X.Q[:,:].*X.Q[:,:] + X.U[:,:].*X.U[:,:], tmp_grad, μ[3].λ, μ[3].ρ)
         g[:,:,3] .+= 2 * X.Q .* tmp_grad
         g[:,:,4] .+= 2 * X.U .* tmp_grad
 

@@ -41,12 +41,12 @@ for k in [-2.0]
 
         function calculate_MSE_for_prima(X::Vector{Float64})
             λ, α = X
-            regularisation_parameters = 10 .^[0,  -1. , -1, λ]
+            regularisation_parameters = 10 .^[0, -1., -1, λ, -1, α]
             regularisation_parameters[1] = 0
             diff_fits = EasyFITS.readfits("test_results/contrast_10e$(k)/Results_Separable_DoubleDifference.fits")
             diff_polar_map = Rhapsodie.TPolarimetricMap("mixed", diff_fits[ :, :, 1]', diff_fits[ :, :, 5]', diff_fits[:, :, 2]', diff_fits[:, :, 3]')
             X0 = diff_polar_map
-            x_est = apply_rhapsodie(X0, A, Rhapsodie.dataset, regularisation_parameters, α=10^α, maxeval=1000, maxiter=1000)
+            x_est = apply_rhapsodie(X0, A, Rhapsodie.dataset, regularisation_parameters, maxeval=1000, maxiter=1000)
             true_polar_map = Rhapsodie.read_and_fill_polar_map("mixed", "$(root_path)TRUE.fits")
             crop!(x_est)
             write_polar_map(x_est, "test_results/prima/contrast_10e$(k)/RHAPSODIE_$(λ)_$(α).fits", overwrite=true)
