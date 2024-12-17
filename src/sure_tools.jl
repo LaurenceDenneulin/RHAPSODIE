@@ -67,8 +67,8 @@ end
 
 function MSE_object(x_est::PolarimetricMap, x_true::PolarimetricMap)
     MSE = zeros(length(fieldnames(TPolarimetricMap)) - 1)
-    n_pixels = sum(get_MASK())
-    for (i, attr) in enumerate(fieldnames(TPolarimetricMap))
+    n_pixels = 1
+    for (i, attr) in enumerate(fieldnames(PolarimetricMap))
         if i == 1 # Skipping field "parameter_type"
             continue
         end
