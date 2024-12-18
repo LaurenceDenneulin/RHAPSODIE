@@ -119,9 +119,9 @@ function apply_gradient!(X::TPolarimetricMap, A::D, g::Array{T,3}, d::Array{Tdat
  	    #f+=cost!(μ[1][2] , μ[1][1], X.Iu[:,:], view(g,:,:,1), false);
  	    f+=apply_tikhonov!(X.Iu_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
         f+=apply_edge_preserving_smoothing!(X.Iu_disk[:,:], view(g,:,:,2), μ[2].λ, μ[2].ρ)
-        f+=apply_edge_preserving_smoothing!(X.Q[:,:].*X.Q[:,:] + X.U[:,:].*X.U[:,:], tmp_grad, μ[3].λ, μ[3].ρ)
-        g[:,:,3] .+= 2 * X.Q .* tmp_grad
-        g[:,:,4] .+= 2 * X.U .* tmp_grad
+        f+=apply_edge_preserving_smoothing!(X.Ip_disk[:,:], tmp_grad, μ[3].λ, μ[3].ρ)
+        g[:,:,3] .+= X.Q .* tmp_grad ./ X.Ip_disk
+        g[:,:,4] .+= X.U .* tmp_grad ./ X.Ip_disk
 
     elseif X.parameter_type == "stokes" # Basis under the form (Iu_star, Iu_disk, Q, U)
  	    f+=apply_tikhonov!(X.I_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));

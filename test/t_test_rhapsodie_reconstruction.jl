@@ -8,7 +8,7 @@ using EasyFITS
 contrast_list = [-2.0]
 max_iter = 700
 # α=10^-5
-α=-0.66
+α=-3.8
 par=readdlm("data_for_demo/Parameters.txt")
 DSIZE=Int64(par[1]);
 NTOT=Int64(par[2]);
@@ -45,8 +45,9 @@ for k in contrast_list
     A = set_fft_op(PSF[1:end÷2,:]'[:,:],psf_center[1:2]);
     # X0 = TPolarimetricMap(parameter_type, zeros(Rhapsodie.get_par().cols));
     X0 = diff_polar_map;
-    regularisation_parameters = 10 .^[0, -1., -1, -0.66, -1, -3] #(in log10) star, disk
+    regularisation_parameters = 10 .^[0, -1., 0, 3, 0, 3] #(in log10) star, disk
     regularisation_parameters[1] = 0
+    regularisation_parameters[5] = 0
     # regularisation_parameter_list = [0.66]
     # regularisation_parameters[4] = regularisation_parameter_list[1]
     x = apply_rhapsodie(X0, A, Rhapsodie.dataset, regularisation_parameters, α=α,
