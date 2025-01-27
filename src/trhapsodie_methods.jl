@@ -44,9 +44,9 @@ function apply_rhapsodie(x0::TPolarimetricMap, A::D, d::Array{Tdata_table,1}, pa
     n1,n2 = size(x0)
     parameter_type = x0.parameter_type
     X0 = convert(Array{T,3}, x0);
-    μ=[hyperparameters(par[1], par[3]); 
-       hyperparameters(par[2], par[4]);
-       hyperparameters(par[5], par[6])];
+    μ=[hyperparameters(par[1], par[2]); # Iu_star
+       hyperparameters(par[3], par[4]); # Iu_disk
+       hyperparameters(par[5], par[6])]; # Ip_disk
     lower_born=vcreate(X0);
     upper_born=vcreate(X0);
     if parameter_type == "intensities"
@@ -104,7 +104,7 @@ function apply_gradient!(X::TPolarimetricMap, A::D, g::Array{T,3}, d::Array{Tdat
  	    #f+=cost!(μ[1][2] , μ[1][1], X.Iu[:,:], view(g,:,:,1), false);
  	    f+=apply_tikhonov!(X.Iu_star[:,:], view(g,:,:,1), μ[1].λ / (2 * μ[1].ρ));
         f+=apply_edge_preserving_smoothing!(X.Iu_disk[:,:], view(g,:,:,2), μ[2].λ, μ[2].ρ; α)
-        f+=apply_edge_preserving_smoothing!(X.Ip_disk[:,:], view(g,:,:,3), μ[2].λ, μ[2].ρ; α)
+        f+=apply_edge_preserving_smoothing!(X.Ip_disk[:,:], view(g,:,:,3), μ[3].λ, μ[3].ρ; α)
 
     elseif X.parameter_type == "mixed" # Basis under the form (Iu_star, Iu_disk, Q, U)
         @inbounds for i2 in 1:n2

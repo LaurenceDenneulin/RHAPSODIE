@@ -8,7 +8,9 @@ using EasyFITS
 contrast_list = [-2.0]
 max_iter = 700
 # α=10^-5
-α=-3.8
+α=-6.68659666729482
+λ = 0.1835037771411455
+
 par=readdlm("data_for_demo/Parameters.txt")
 DSIZE=Int64(par[1]);
 NTOT=Int64(par[2]);
@@ -43,17 +45,15 @@ for k in contrast_list
 
     PSF = readfits("data_for_demo/PSF_parametered_Airy.fits");
     A = set_fft_op(PSF[1:end÷2,:]'[:,:],psf_center[1:2]);
-    # X0 = TPolarimetricMap(parameter_type, zeros(Rhapsodie.get_par().cols));
-    X0 = diff_polar_map;
-    regularisation_parameters = 10 .^[0, -1., 0, 3, 0, 3] #(in log10) star, disk
+    X0 = TPolarimetricMap(parameter_type, zeros(Rhapsodie.get_par().cols));
+    # X0 = diff_polar_map;
+    regularisation_parameters = 10 .^[0, -1., 0, 3, 0, 3] #(in log10) star, disk | Iu_star, Iu_star, Iu_disk, Iu_disk, Ip_disk, Ip_disk 
     regularisation_parameters[1] = 0
-    regularisation_parameters[5] = 0
-    # regularisation_parameter_list = [0.66]
-    # regularisation_parameters[4] = regularisation_parameter_list[1]
+    regularisation_parameters[3] = λ
     x = apply_rhapsodie(X0, A, Rhapsodie.dataset, regularisation_parameters, α=α,
                         maxeval=1000, maxiter=max_iter);
     crop!(x)
-    write_polar_map(x, "test_results/contrast_10e$(k)/rhapsodie_method_results/max_iter_$(max_iter)/RHAPSODIE_opti_params_$(parameter_type)_independant_hyperparam.fits", overwrite=true)
+    write_polar_map(x, "test_results/contrast_10e$(k)/rhapsodie_method_results/max_iter_$(max_iter)/RHAPSODIE_opti_params_$(parameter_type)_from_zero.fits", overwrite=true)
     # append!(mse_list, Rhapsodie.MSE_object(x, true_polar_map))
     empty!(Rhapsodie.dataset)
 end
